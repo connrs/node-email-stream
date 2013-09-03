@@ -1,0 +1,12 @@
+To: test@example.com
+From: test@example.org
+Subject: EmailStream Test Subject
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+X-Mailer: Node EmailStream
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam pulvinar dui=
+ eget dui bibendum, et bibendum erat sagittis. Cras venenatis quam id velit=
+ pharetra, id tempor sem faucibus. Curabitur laoreet enim vitae sollicitudi=
+n venenatis. Suspendisse vitae pharetra erat. Integer in dignissim nibh, se=
+d placerat velit. Nullam sit amet dui pretium.

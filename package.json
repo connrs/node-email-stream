@@ -1,0 +1,29 @@
+{
+  "engines": {
+    "node": ">= 0.10"
+  },
+  "name": "email-stream",
+  "version": "0.0.1",
+  "description": "Build a raw email with streams",
+  "main": "lib/email-stream.js",
+  "scripts": {
+    "test": "node_modules/tape/bin/tape test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/connrs/node-email-stream.git"
+  },
+  "keywords": [
+    "email"
+  ],
+  "author": "connrs",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+  "dependencies": {
+    "tape": "~1.0.4",
+    "encode-quoted-printable": "~0.1.1",
+    "quoted-printable-stream": "0.0.1",
+    "mime-part-stream": "0.0.1",
+    "sandwich-stream": "0.0.4",
+    "mime-headers": "0.0.1"
+  }
+}

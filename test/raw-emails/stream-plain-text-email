@@ -1,0 +1,8 @@
+To: test@example.com
+From: test@example.org
+Subject: EmailStream Test Subject
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+X-Mailer: Node EmailStream
+
+Hello world!

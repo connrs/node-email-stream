@@ -1,0 +1,21 @@
+To: test@example.com
+From: test@example.org
+Subject: EmailStream Test Subject
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary=NES.1.1111111111
+X-Mailer: Node EmailStream
+
+This is a MIME message.
+
+--NES.1.1111111111
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hello world!
+--NES.1.1111111111
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<html><body><div class=3D"quoted-printable-string"><p>Hello world!</p></div=
+></body></html>
+--NES.1.1111111111--
