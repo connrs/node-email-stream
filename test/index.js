@@ -5,6 +5,23 @@ var PassThrough = require('stream').PassThrough;
 var fs = require('fs');
 var path = require('path');
 var email;
+var output;
+var mock = (function () {
+  var oldDateNow = Date.now;
+
+  function overrideDateNow(f) {
+    Date.now = f;
+  }
+
+  function restoreDateNow() {
+    Date.now = oldDateNow;
+  }
+
+  return {
+    overrideDateNow: overrideDateNow,
+    restoreDateNow: restoreDateNow
+  };
+}());
 
 function readRawEmail(filename) {
   return fs.readFileSync(path.join(__dirname, 'raw-emails', filename)).toString();
@@ -79,23 +96,6 @@ test('No error when text stream defined', function (t) {
   }
 });
 
-//test('No error when HTML stream defined', function (t) {
-  //t.plan(1);
-  //try {
-    //email = emailStream({
-      //to: 'test@example.com',
-      //from: 'test@example.org',
-      //subject: 'EmailStream Test Subject',
-      //html: new PassThrough()
-    //});
-    //t.pass();
-  //}
-  //catch (e) {
-    //t.fail();
-  //}
-//});
-
-
 test('Stream plain text email', function (t) {
   var output = [];
   var text = new PassThrough();
@@ -115,14 +115,11 @@ test('Stream plain text email', function (t) {
 });
 
 test('Stream text & HTML email', function (t) {
-  var oldDateNow = Date.now;
-  var output = [];
   var text = new PassThrough();
   var html = new PassThrough();
 
-  Date.now = function () {
-    return '1111111111';
-  };
+  mock.overrideDateNow(function () { return '1111111111'; });
+  output = [];
   email = emailStream({
     to: 'test@example.com',
     from: 'test@example.org',
@@ -130,6 +127,7 @@ test('Stream text & HTML email', function (t) {
     text: text,
     html: html
   });
+  mock.restoreDateNow();
   email.on('data', output.push.bind(output));
   email.on('end', function () {
     t.equal(Buffer.concat(output).toString(), readRawEmail('stream-text-html-email'));
@@ -139,43 +137,91 @@ test('Stream text & HTML email', function (t) {
   html.end('<html><body><p>Hello world!</body></html>');
 });
 
-//test('Wraps plain text email', function (t) {
-  //var output = '';
-  //email = emailStream({
-    //to: 'test@example.com',
-    //from: 'test@example.org',
-    //subject: 'EmailStream Test Subject'
-  //});
-  //email.text().end('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam pulvinar dui eget dui bibendum, et bibendum erat sagittis. Cras venenatis quam id velit pharetra, id tempor sem faucibus. Curabitur laoreet enim vitae sollicitudin venenatis. Suspendisse vitae pharetra erat. Integer in dignissim nibh, sed placerat velit. Nullam sit amet dui pretium.');
-  //email.on('data', function (data) {
-    //output += data.toString();
-  //});
-  //email.on('end', function () {
-    //t.equal(output, readRawEmail('email3'));
-    //t.end();
-  //});
-//});
+test('Wraps plain text email', function (t) {
+  var text = new PassThrough();
 
-//test('Encodes HTML email', function (t) {
-  //var oldDateNow = Date.now;
-  //var output = '';
-  //Date.now = function () {
-    //return '1111111111';
-  //};
-  //email = emailStream({
-    //to: 'test@example.com',
-    //from: 'test@example.org',
-    //subject: 'EmailStream Test Subject'
-  //});
-  //email.text().end('Hello world!');
-  //email.html();
-  //email.on('data', function (data) {
-    //output += data.toString();
-  //});
-  //email.on('end', function () {
-    //t.equal(output, readRawEmail('email4'));
-    //t.end();
-  //});
-  //email.html().end('<html><body><div class="quoted-printable-string"><p>Hello world!</p></div></body></html>');
-  //Date.now = oldDateNow;
-//});
+  output = [];
+  email = emailStream({
+    to: 'test@example.com',
+    from: 'test@example.org',
+    subject: 'EmailStream Test Subject',
+    text: text
+  });
+  text.end('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam pulvinar dui eget dui bibendum, et bibendum erat sagittis. Cras venenatis quam id velit pharetra, id tempor sem faucibus. Curabitur laoreet enim vitae sollicitudin venenatis. Suspendisse vitae pharetra erat. Integer in dignissim nibh, sed placerat velit. Nullam sit amet dui pretium.');
+  email.on('data', output.push.bind(output));
+  email.on('end', function () {
+    t.equal(Buffer.concat(output).toString(), readRawEmail('wraps-plain-text-email'));
+    t.end();
+  });
+});
+
+test('Encodes HTML email', function (t) {
+  var text = new PassThrough();
+  var html = new PassThrough();
+
+  output = [];
+  mock.overrideDateNow(function () {
+    return '1111111111';
+  });
+  email = emailStream({
+    to: 'test@example.com',
+    from: 'test@example.org',
+    subject: 'EmailStream Test Subject',
+    text: text,
+    html: html
+  });
+  mock.restoreDateNow();
+  text.end('Hello world!');
+  email.on('data', function (data) {
+    output += data.toString();
+  });
+  email.on('end', function () {
+    t.equal(output, readRawEmail('encodes-html-email'));
+    t.end();
+  });
+  html.end('<html><body><div class="quoted-printable-string"><p>Hello world!</p></div></body></html>');
+});
+
+test('Emits error when no attachments are added', function (t) {
+  var text = new PassThrough();
+
+  t.plan(1);
+  email = emailStream({
+    to: 'test@example.com',
+    from: 'test@example.org',
+    subject: 'EmailStream Test Subject',
+    text: text,
+    attachments: true
+  });
+  text.end('Hello world!');
+  email.on('error', function (err) {
+    t.equal(err.message, 'EmailStream no attachments added');
+  });
+  email.read();
+});
+
+test('Stream text and one attachment', function (t) {
+  var text = new PassThrough();
+  var attachment = new PassThrough();
+  
+  output = [];
+  email = emailStream({
+    to: 'test@example.com',
+    from: 'test@example.org',
+    subject: 'EmailStream Test Subject',
+    text: text,
+    attachments: true
+  });
+  email.attach({
+    type: 'text/svg',
+    filename: 'circle.svg',
+    body: attachment
+  });
+  text.end('Hello world!');
+  attachment.end('<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><circle cx="250" cy="250" r="210" fill="#fff" stroke="#000" stroke-width="8"/></svg>');
+  email.on('data', output.push.bind(output));
+  email.on('end', function () {
+    t.equal(Buffer.concat(output).toString(), readRawEmail('stream-text-and-one-attachment'));
+    t.end();
+  });
+});
