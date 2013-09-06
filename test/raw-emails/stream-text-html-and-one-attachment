@@ -8,10 +8,20 @@ X-Mailer: Node EmailStream
 This is a MIME message.
 
 --NES.1.1111111111
+Content-Type: multipart/alternative; boundary=MMSNES.2.1111111111
+
+--MMSNES.2.1111111111
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
 Hello world!
+--MMSNES.2.1111111111
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<html><body><div class=3D"quoted-printable-string"><p>Hello world!</p></div=
+></body></html>
+--MMSNES.2.1111111111--
 --NES.1.1111111111
 Content-Type: text/svg
 Content-Disposition: attachment; filename=circle.svg

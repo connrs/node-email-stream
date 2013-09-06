@@ -27,6 +27,15 @@ function readRawEmail(filename) {
   return fs.readFileSync(path.join(__dirname, 'raw-emails', filename)).toString();
 }
 
+function streamed(stream, func) {
+  var output = [];
+
+  stream.on('data', output.push.bind(output));
+  stream.on('end', function () {
+    func(Buffer.concat(output).toString());
+  });
+}
+
 test('Emits error when no to address', function (t) {
   t.plan(1);
   try {
@@ -97,7 +106,6 @@ test('No error when text stream defined', function (t) {
 });
 
 test('Stream plain text email', function (t) {
-  var output = [];
   var text = new PassThrough();
 
   email = emailStream({
@@ -106,9 +114,8 @@ test('Stream plain text email', function (t) {
     subject: 'EmailStream Test Subject',
     text: text
   });
-  email.on('data', output.push.bind(output));
-  email.on('end', function () {
-    t.equal(Buffer.concat(output).toString(), readRawEmail('stream-plain-text-email'));
+  streamed(email, function (output) {
+    t.equal(output, readRawEmail('stream-plain-text-email'));
     t.end();
   });
   text.end('Hello world!');
@@ -205,6 +212,9 @@ test('Stream text and one attachment', function (t) {
   var attachment = new PassThrough();
   
   output = [];
+  mock.overrideDateNow(function () {
+    return '1111111111';
+  });
   email = emailStream({
     to: 'test@example.com',
     from: 'test@example.org',
@@ -212,16 +222,50 @@ test('Stream text and one attachment', function (t) {
     text: text,
     attachments: true
   });
+  mock.restoreDateNow();
   email.attach({
     type: 'text/svg',
     filename: 'circle.svg',
     body: attachment
   });
   text.end('Hello world!');
-  attachment.end('<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><circle cx="250" cy="250" r="210" fill="#fff" stroke="#000" stroke-width="8"/></svg>');
+  attachment.end('<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><circle cx="250" cy="250" r="210" fill="#fff" stroke="#000" stroke-width="8"/></svg>\r\n');
   email.on('data', output.push.bind(output));
   email.on('end', function () {
     t.equal(Buffer.concat(output).toString(), readRawEmail('stream-text-and-one-attachment'));
+    t.end();
+  });
+});
+
+test('Stream text, html and one attachment', function (t) {
+  var text = new PassThrough();
+  var html = new PassThrough();
+  var attachment = new PassThrough();
+  
+  output = [];
+  mock.overrideDateNow(function () {
+    return '1111111111';
+  });
+  email = emailStream({
+    to: 'test@example.com',
+    from: 'test@example.org',
+    subject: 'EmailStream Test Subject',
+    text: text,
+    html: html,
+    attachments: true
+  });
+  mock.restoreDateNow();
+  email.attach({
+    type: 'text/svg',
+    filename: 'circle.svg',
+    body: attachment
+  });
+  text.end('Hello world!');
+  html.end('<html><body><div class="quoted-printable-string"><p>Hello world!</p></div></body></html>');
+  attachment.end('<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><circle cx="250" cy="250" r="210" fill="#fff" stroke="#000" stroke-width="8"/></svg>\r\n');
+  email.on('data', output.push.bind(output));
+  email.on('end', function () {
+    t.equal(Buffer.concat(output).toString(), readRawEmail('stream-text-html-and-one-attachment'));
     t.end();
   });
 });

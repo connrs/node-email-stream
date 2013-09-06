@@ -14,16 +14,22 @@
     "url": "https://github.com/connrs/node-email-stream.git"
   },
   "keywords": [
-    "email"
+    "email",
+    "stream"
   ],
   "author": "connrs",
-  "license": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+  "licenses": [
+    {
+      "type": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
   "dependencies": {
     "tape": "~1.0.4",
     "quoted-printable-stream": "0.0.1",
-    "mime-part-stream": "0.3.0",
+    "mime-part-stream": "0.3.2",
     "sandwich-stream": "0.0.4",
     "mime-headers": "0.0.1",
-    "mime-multipart-stream": "~0.1.0"
+    "mime-multipart-stream": "0.1.2"
   }
 }
