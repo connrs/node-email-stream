@@ -3,7 +3,7 @@
     "node": ">= 0.10"
   },
   "name": "email-stream",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Build a raw email with streams",
   "main": "lib/email-stream.js",
   "scripts": {
@@ -25,11 +25,13 @@
     }
   ],
   "dependencies": {
-    "tape": "~1.0.4",
     "quoted-printable-stream": "0.0.1",
     "mime-part-stream": "0.3.2",
     "sandwich-stream": "0.0.4",
     "mime-headers": "0.0.1",
     "mime-multipart-stream": "0.1.2"
+  },
+  "devDependencies": {
+    "tape": "~1.1.0"
   }
 }
